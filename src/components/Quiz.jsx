@@ -10,16 +10,12 @@ export default function Quiz({
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [totalXp, setTotalXp] = useState(0);
   const [totalCoins, setTotalCoins] = useState(0);
-  const [answeredQuestions, setAnsweredQuestions] = useState(new Set());
 
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
 
   const handleAnswer = (isCorrect) => {
-    // Marca como respondida
-    setAnsweredQuestions((prev) => new Set([...prev, currentQuestionIndex]));
-
-    // Calcula novos valores (evita bug de estado assíncrono)
+    // Calcula ganhos
     const xpGanho = isCorrect ? xpPerQuestion : 0;
     const coinsGanho = isCorrect ? coinsPerQuestion : 0;
 
