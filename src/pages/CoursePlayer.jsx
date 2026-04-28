@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
+import { useSidebar } from '../context/SidebarContext';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import VideoSection from '../components/VideoSection';
@@ -11,6 +12,9 @@ export default function CoursePlayer() {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const { addXP, addCoins, isCourseCompleted, completeCourse } = useGame();
+  const { isCollapsed } = useSidebar();
+
+  const marginClass = isCollapsed ? "ml-20" : "ml-64";
 
   // Dados dos cursos
   const coursesData = {
@@ -174,7 +178,7 @@ export default function CoursePlayer() {
   };
 
   // Handler para finalizar o quiz
-  const handleFinishQuiz = (totalXp, totalCoins) => {
+  const handleFinishQuiz = ({ totalXp, totalCoins }) => {
     setXpEarned(totalXp);
     setCoinsEarned(totalCoins);
     setFinished(true);
@@ -198,7 +202,7 @@ export default function CoursePlayer() {
     return (
       <div className="flex bg-gray-50 min-h-screen">
         <Sidebar />
-        <div className="flex-1 ml-64">
+        <div className={`flex-1 ${marginClass} transition-all duration-300`}>
           <Navbar />
           <div className="w-full bg-white flex flex-col">
             <VideoSection videoUrl={course.videoUrl} title={course.title} />
@@ -248,7 +252,7 @@ export default function CoursePlayer() {
     return (
       <div className="flex bg-gray-50 min-h-screen">
         <Sidebar />
-        <div className="flex-1 ml-64">
+        <div className={`flex-1 ${marginClass} transition-all duration-300`}>
           <Navbar />
           <div className="w-full bg-white">
             <Quiz
@@ -268,7 +272,7 @@ export default function CoursePlayer() {
     return (
       <div className="flex bg-gray-50 min-h-screen">
         <Sidebar />
-        <div className="flex-1 ml-64">
+        <div className={`flex-1 ${marginClass} transition-all duration-300`}>
           <Navbar />
           <div className="w-full bg-white">
             <CompletionCard
@@ -286,7 +290,7 @@ export default function CoursePlayer() {
   return (
     <div className="flex bg-gray-50 min-h-screen">
       <Sidebar />
-      <div className="flex-1 ml-64">
+      <div className={`flex-1 ${marginClass} transition-all duration-300`}>
         <Navbar />
         <div className="w-full bg-white">
           <VideoSection videoUrl={course.videoUrl} title={course.title} />

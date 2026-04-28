@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameContext";
+import { useSidebar } from "../context/SidebarContext";
 import Sidebar from "../components/Sidebar.jsx";
 import Navbar from "../components/Navbar.jsx";
 import CourseCard from "../components/CourseCard.jsx";
@@ -7,6 +8,9 @@ import CourseCard from "../components/CourseCard.jsx";
 function Home() {
   const navigate = useNavigate();
   const { search } = useGame();
+  const { isCollapsed } = useSidebar();
+
+  const marginClass = isCollapsed ? "ml-20" : "ml-64";
 
   const courses = [
     { 
@@ -45,7 +49,7 @@ function Home() {
     <div className="flex bg-gray-50 min-h-screen">
       <Sidebar />
 
-      <div className="flex-1 ml-64">
+      <div className={`flex-1 ${marginClass} transition-all duration-300`}>
         <Navbar />
 
         <div className="p-8 space-y-6">
