@@ -1,95 +1,83 @@
+import { useNavigate } from "react-router-dom";
+import { useGame } from "../context/GameContext";
 import Sidebar from "../components/Sidebar.jsx";
 import Navbar from "../components/Navbar.jsx";
 import CourseCard from "../components/CourseCard.jsx";
 
-function Home({
-  xp,
-  xpMax,
-  coins,
-  level,
-  addXP,
-  addCoins,
-  levelPulse,
-  coinAnim,
-  search,
-  setSearch
-}) {
+function Home() {
+  const navigate = useNavigate();
+  const { search, setSearch } = useGame();
 
   const courses = [
-    { title: "Learn English with Pokémon", xp: 50, coins: 10 },
-    { title: "Japanese for Anime", xp: 70, coins: 20 },
-    { title: "Spanish Basics", xp: 40, coins: 5 }
+    { 
+      id: "japanese-anime",
+      title: "Learn Japanese with Anime", 
+      xp: 150, 
+      coins: 50,
+      description: "Master essential Japanese expressions from your favorite anime series!"
+    },
+    { 
+      id: "english-pokemon",
+      title: "English with Pokémon", 
+      xp: 120, 
+      coins: 40,
+      description: "Learn English vocabulary through Pokémon battles and conversations."
+    },
+    { 
+      id: "spanish-basics",
+      title: "Spanish Basics", 
+      xp: 100, 
+      coins: 30,
+      description: "Get started with essential Spanish phrases and grammar."
+    }
   ];
 
-  // 🔥 PROTEÇÃO TOTAL CONTRA undefined
   const query = (search ?? "").toLowerCase();
-
   const filteredCourses = courses.filter(course =>
     course.title.toLowerCase().includes(query)
   );
 
+  const handleStartCourse = (courseId) => {
+    navigate(`/course/${courseId}`);
+  };
+
   return (
     <div className="flex bg-gray-50 min-h-screen">
-
       <Sidebar />
 
       <div className="flex-1 ml-64">
-
-        <Navbar
-          level={level}
-          xp={xp}
-          xpMax={xpMax}
-          coins={coins}
-          levelPulse={levelPulse}
-          coinAnim={coinAnim}
-          search={search}
-          setSearch={setSearch}
-        />
+        <Navbar />
 
         <div className="p-8 space-y-6">
-
-          <h2 className="text-2xl font-bold mb-6">
-            Recommended for You
-          </h2>
-
-          <div className="flex gap-4 mb-6">
-
-            <button
-              onClick={() => addXP(Math.floor(Math.random() * 50) + 50)}
-              className="bg-purple-600 text-white px-4 py-2 rounded"
-            >
-              + XP Test
-            </button>
-
-            <button
-              onClick={() => addCoins(Math.floor(Math.random() * 50) + 50)}
-              className="bg-green-600 text-white px-4 py-2 rounded"
-            >
-              + Coins Test
-            </button>
-
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              Recommended Courses
+            </h2>
+            <p className="text-gray-600">
+              Choose a course and start learning today!
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCourses.length > 0 ? (
-              filteredCourses.map((course, i) => (
-                <div key={i} onClick={() => addXP(course.xp)}>
-                  <CourseCard
-                    title={course.title}
-                    xp={`+${course.xp} XP`}
-                    coins={`+${course.coins} Coins`}
-                  />
-                </div>
+              filteredCourses.map((course) => (
+                <CourseCard
+                  key={course.id}
+                  title={course.title}
+                  description={course.description}
+                  xp={course.xp}
+                  coins={course.coins}
+                  onStart={() => handleStartCourse(course.id)}
+                />
               ))
             ) : (
-              <p className="text-gray-500">
-                Nenhum curso encontrado
-              </p>
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500 text-lg">
+                  No courses found matching your search.
+                </p>
+              </div>
             )}
-
           </div>
-
         </div>
       </div>
     </div>

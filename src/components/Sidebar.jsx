@@ -1,51 +1,62 @@
 import { useNavigate } from "react-router-dom";
+import { useGame } from "../context/GameContext";
 import logo from "../assets/logo-stoody.png";
 
 function Sidebar() {
   const navigate = useNavigate();
+  const { resetProgress } = useGame();
 
   function handleLogout() {
-    localStorage.clear(); // limpa XP, coins, search etc
-    navigate("/"); // volta para login
+    resetProgress();
+    navigate("/");
   }
 
   return (
-    <aside className="w-64 fixed h-screen bg-white shadow-md p-6 flex flex-col">
+    <aside className="w-64 fixed h-screen bg-white shadow-lg p-6 flex flex-col border-r border-gray-200">
+      {/* Logo */}
+      <div className="mb-10 flex justify-center">
+        <img
+          src={logo}
+          alt="Stoody"
+          className="h-20 object-contain cursor-pointer hover:opacity-80 transition"
+          onClick={() => navigate("/home")}
+        />
+      </div>
 
-<div className="mb-10 flex justify-center">
-  <img
-    src={logo}
-    alt="Stoody"
-    className="h-22 object-contain"
-  />
-</div>
+      {/* Navigation */}
       <nav className="flex flex-col gap-3 flex-1">
-
-        <button className="text-left px-3 py-2 hover:bg-gray-100 rounded">
-          📚 Courses
+        <button
+          onClick={() => navigate("/home")}
+          className="text-left px-4 py-3 rounded-lg text-gray-700 font-medium hover:bg-purple-50 hover:text-purple-600 transition flex items-center gap-3"
+        >
+          <span className="text-xl">📚</span>
+          Courses
         </button>
 
-        <button className="text-left px-3 py-2 hover:bg-gray-100 rounded">
-          🛒 Shop
+        <button className="text-left px-4 py-3 rounded-lg text-gray-700 font-medium hover:bg-purple-50 hover:text-purple-600 transition flex items-center gap-3">
+          <span className="text-xl">🛒</span>
+          Shop
         </button>
 
-        <button className="text-left px-3 py-2 hover:bg-gray-100 rounded">
-          👤 Profile
+        <button className="text-left px-4 py-3 rounded-lg text-gray-700 font-medium hover:bg-purple-50 hover:text-purple-600 transition flex items-center gap-3">
+          <span className="text-xl">👤</span>
+          Profile
         </button>
 
-        <button className="text-left px-3 py-2 hover:bg-gray-100 rounded">
-          🏆 Leaderboard
+        <button className="text-left px-4 py-3 rounded-lg text-gray-700 font-medium hover:bg-purple-50 hover:text-purple-600 transition flex items-center gap-3">
+          <span className="text-xl">🏆</span>
+          Leaderboard
         </button>
-
       </nav>
 
+      {/* Logout Button */}
       <button
         onClick={handleLogout}
-        className="text-left px-3 py-2 text-red-500 hover:bg-red-100 rounded"
+        className="text-left px-4 py-3 rounded-lg text-red-600 font-medium hover:bg-red-50 transition flex items-center gap-3 w-full"
       >
-        🚪 Logout
+        <span className="text-xl">🚪</span>
+        Logout
       </button>
-
     </aside>
   );
 }
