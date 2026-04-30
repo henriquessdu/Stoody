@@ -78,7 +78,7 @@ export function GameProvider({ children }) {
     };
   }, []);
 
-  const saveProfile = async (newData) => {
+  const saveProfile = useCallback(async (newData) => {
     if (!userId) return;
 
     const { error } = await supabase
@@ -89,7 +89,7 @@ export function GameProvider({ children }) {
     if (error) {
       console.error("Erro ao salvar perfil:", error.message);
     }
-  };
+  }, [userId]);
 
   const signup = useCallback(async (name, email, password) => {
     const { data, error } = await supabase.auth.signUp({
@@ -166,7 +166,7 @@ export function GameProvider({ children }) {
       level: newLevel,
       xp_max: newXpMax,
     });
-  }, [xp, level, xpMax, userId]);
+  }, [xp, level, xpMax, userId, saveProfile]);
 
   const addCoins = useCallback(async (amount) => {
     const newCoins = coins + amount;
@@ -179,7 +179,7 @@ export function GameProvider({ children }) {
     await saveProfile({
       coins: newCoins,
     });
-  }, [coins, userId]);
+  }, [coins, userId, saveProfile]);
 
   const completeCourse = useCallback((courseId) => {
     setCompletedCourses((prev) => {

@@ -16,9 +16,6 @@ function Leaderboard() {
   const marginClass = isCollapsed ? "md:ml-20" : "md:ml-64";
 
   useEffect(() => {
-    fetchLeaderboard();
-  }, [filter]);
-
   async function fetchLeaderboard() {
     setLoading(true);
 
@@ -37,6 +34,9 @@ function Leaderboard() {
 
     setLoading(false);
   }
+
+  fetchLeaderboard();
+  }, [filter]);
 
   return (
     <>
