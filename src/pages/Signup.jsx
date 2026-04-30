@@ -15,11 +15,10 @@ function Signup() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function handleSignup(e) {
+  async function handleSignup(e) {
     e.preventDefault();
     setError("");
 
-    // Validações
     if (!name.trim()) {
       setError("Por favor, insira seu nome");
       return;
@@ -46,34 +45,29 @@ function Signup() {
     }
 
     setLoading(true);
-    
-    // Simular delay de processamento
-    setTimeout(() => {
-      const result = signup(name.trim(), email.toLowerCase(), password);
-      
-      if (result.success) {
-        // Redirecionar para login
-        navigate("/");
-      } else {
-        setError(result.error);
-      }
-      
-      setLoading(false);
-    }, 500);
+
+    const result = await signup(name.trim(), email.toLowerCase(), password);
+
+    if (result.success) {
+      navigate("/home");
+    } else {
+      setError(result.error);
+    }
+
+    setLoading(false);
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-50 to-pink-50">
-      {/* NAVBAR */}
       <nav className="w-full px-4 sm:px-8 py-4 flex justify-between items-center bg-white/80 backdrop-blur-md shadow-md">
-        <img 
-          src={logo} 
-          className="h-12 sm:h-16 object-contain cursor-pointer hover:opacity-80 transition" 
+        <img
+          src={logo}
+          className="h-12 sm:h-16 object-contain cursor-pointer hover:opacity-80 transition"
           alt="Stoody"
           onClick={() => navigate("/")}
         />
 
-        <button 
+        <button
           onClick={() => navigate("/")}
           className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 sm:px-6 py-2 rounded-full font-semibold hover:shadow-lg transition-all text-sm sm:text-base"
         >
@@ -81,13 +75,11 @@ function Signup() {
         </button>
       </nav>
 
-      {/* FORM */}
       <div className="flex flex-1 items-center justify-center px-4 py-8 sm:py-0">
         <form
           onSubmit={handleSignup}
           className="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-md"
         >
-          {/* Cabeçalho */}
           <div className="mb-8 text-center">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
               Criar Conta 🚀
@@ -97,14 +89,12 @@ function Signup() {
             </p>
           </div>
 
-          {/* Erro */}
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
               {error}
             </div>
           )}
 
-          {/* Nome */}
           <div className="mb-4">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Nome Completo
@@ -119,7 +109,6 @@ function Signup() {
             />
           </div>
 
-          {/* Email */}
           <div className="mb-4">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Email
@@ -134,7 +123,6 @@ function Signup() {
             />
           </div>
 
-          {/* Senha */}
           <div className="mb-4">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Senha
@@ -159,7 +147,6 @@ function Signup() {
             </div>
           </div>
 
-          {/* Confirmar Senha */}
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Confirmar Senha
@@ -184,7 +171,6 @@ function Signup() {
             </div>
           </div>
 
-          {/* Signup Button */}
           <button
             type="submit"
             disabled={loading}
@@ -193,14 +179,16 @@ function Signup() {
             {loading ? "Criando conta..." : "Criar Conta"}
           </button>
 
-          {/* Footer */}
           <div className="text-center text-xs sm:text-sm text-gray-600">
-            <p>Já tem conta? <span 
-              className="text-purple-600 font-semibold cursor-pointer hover:underline"
-              onClick={() => navigate("/")}
-            >
-              Fazer login
-            </span></p>
+            <p>
+              Já tem conta?{" "}
+              <span
+                className="text-purple-600 font-semibold cursor-pointer hover:underline"
+                onClick={() => navigate("/")}
+              >
+                Fazer login
+              </span>
+            </p>
           </div>
         </form>
       </div>

@@ -1,23 +1,95 @@
+import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import { useSidebar } from "../context/SidebarContext";
 import { useGame } from "../context/GameContext";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
 function Profile() {
   const { isCollapsed } = useSidebar();
-  const { userName, userEmail, xp, xpMax, level, coins, completedCourses } = useGame();
+  const { userId, userName, userEmail, xp, xpMax, level, coins, completedCourses } = useGame();
   const navigate = useNavigate();
+
+  const [ownedAvatars, setOwnedAvatars] = useState([]);
+  const [currentAvatar, setCurrentAvatar] = useState("");
+  const [rankingGlobal, setRankingGlobal] = useState("-");
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
 
   const marginClass = isCollapsed ? "md:ml-20" : "md:ml-64";
 
   const cursosIniciados = 3;
   const cursosConcluidos = completedCourses.length;
-  const avataresComprados = 4;
+  const avataresComprados = ownedAvatars.length;
   const diasConsecutivos = 7;
-  const rankingGlobal = 128;
-
   const progressoXp = xpMax ? (xp / xpMax) * 100 : 0;
+
+  useEffect(() => {
+    async function loadProfileData() {
+      if (!userId) return;
+
+      setLoading(true);
+
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", userId)
+        .single();
+
+      if (profileData?.avatar_url) {
+        setCurrentAvatar(profileData.avatar_url);
+      }
+
+      const { data: avatarsData, error: avatarsError } = await supabase
+        .from("user_avatars")
+        .select("avatars(id, name, image_url, price)")
+        .eq("user_id", userId);
+
+      if (!avatarsError && avatarsData) {
+        const formattedAvatars = avatarsData
+          .map((item) => item.avatars)
+          .filter(Boolean);
+
+        setOwnedAvatars(formattedAvatars);
+      }
+
+      const { data: rankingData } = await supabase
+        .from("profiles")
+        .select("id, xp")
+        .order("xp", { ascending: false });
+
+      if (rankingData) {
+        const position = rankingData.findIndex((user) => user.id === userId) + 1;
+        setRankingGlobal(position || "-");
+      }
+
+      setLoading(false);
+    }
+
+    loadProfileData();
+  }, [userId]);
+
+  async function selectAvatar(avatarUrl) {
+    setMessage("");
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: avatarUrl })
+      .eq("id", userId);
+
+    if (error) {
+      setMessage("Não foi possível alterar o avatar.");
+      return;
+    }
+
+    setCurrentAvatar(avatarUrl);
+    setMessage("Avatar atualizado com sucesso!");
+  }
+
+  const avatarPrincipal =
+    currentAvatar ||
+    `https://api.dicebear.com/7.x/adventurer/svg?seed=${userName || "Stoody"}`;
 
   return (
     <>
@@ -26,11 +98,10 @@ function Profile() {
         <Navbar />
 
         <main className="p-6 pb-24">
-          {/* HEADER */}
           <section className="bg-gradient-to-r from-purple-600 to-pink-500 rounded-3xl p-8 text-white shadow-xl mb-8">
             <div className="flex flex-col md:flex-row items-center gap-6">
               <img
-                src="https://api.dicebear.com/7.x/adventurer/svg?seed=Henrique"
+                src={avatarPrincipal}
                 alt="Avatar do usuário"
                 className="w-32 h-32 rounded-full bg-white/20 p-3"
               />
@@ -44,7 +115,6 @@ function Profile() {
                   {userEmail || "email@stoody.com"}
                 </p>
 
-                {/* XP BAR */}
                 <div className="mt-5">
                   <div className="flex justify-between text-sm text-purple-100 mb-1">
                     <span>XP</span>
@@ -60,7 +130,6 @@ function Profile() {
                 </div>
               </div>
 
-              {/* LEVEL */}
               <div className="bg-white/20 backdrop-blur rounded-2xl p-5 text-center min-w-32">
                 <p className="text-sm text-purple-100">Level</p>
                 <p className="text-4xl font-bold">{level}</p>
@@ -68,7 +137,6 @@ function Profile() {
             </div>
           </section>
 
-          {/* CARDS */}
           <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card title="Cursos iniciados" value={cursosIniciados} icon="📚" />
             <Card title="Cursos concluídos" value={cursosConcluidos} icon="✅" />
@@ -78,8 +146,7 @@ function Profile() {
             <Card title="Dias consecutivos" value={diasConsecutivos} icon="🔥" />
           </section>
 
-          {/* RANKING */}
-          <section className="mt-8 bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:scale-[1.02] hover:shadow-xl transition-all duration-300">
+          <section className="mt-8 bg-white rounded-2xl shadow-md p-6 border border-gray-100">
             <h2 className="text-2xl font-bold text-gray-800 mb-2">
               Ranking Global
             </h2>
@@ -98,6 +165,81 @@ function Profile() {
             >
               Ver ranking completo
             </button>
+          </section>
+
+          <section className="mt-8 bg-white rounded-2xl shadow-md p-6 border border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Meus Avatares
+                </h2>
+                <p className="text-gray-500">
+                  Escolha um avatar comprado para usar no seu perfil.
+                </p>
+              </div>
+
+              <button
+                onClick={() => navigate("/shop")}
+                className="bg-purple-600 text-white px-5 py-3 rounded-xl font-bold hover:bg-purple-700 hover:scale-105 transition-all duration-300"
+              >
+                Ir para loja
+              </button>
+            </div>
+
+            {message && (
+              <div className="mb-5 bg-purple-50 text-purple-700 rounded-xl p-3">
+                {message}
+              </div>
+            )}
+
+            {loading ? (
+              <p className="text-gray-500">Carregando avatares...</p>
+            ) : ownedAvatars.length === 0 ? (
+              <p className="text-gray-500">
+                Você ainda não comprou nenhum avatar.
+              </p>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {ownedAvatars.map((avatar) => {
+                  const selected = currentAvatar === avatar.image_url;
+
+                  return (
+                    <div
+                      key={avatar.id}
+                      className={`rounded-2xl shadow-md p-5 border hover:scale-105 hover:shadow-xl transition-all duration-300 ${
+                        selected
+                          ? "bg-purple-50 border-purple-500"
+                          : "bg-white border-gray-100"
+                      }`}
+                    >
+                      <div className="bg-purple-50 rounded-2xl p-4 mb-4">
+                        <img
+                          src={avatar.image_url}
+                          alt={avatar.name}
+                          className="w-full h-32 object-contain"
+                        />
+                      </div>
+
+                      <h3 className="text-lg font-bold text-gray-800">
+                        {avatar.name}
+                      </h3>
+
+                      <button
+                        onClick={() => selectAvatar(avatar.image_url)}
+                        disabled={selected}
+                        className={`mt-4 w-full px-4 py-2 rounded-xl font-bold transition-all duration-300 ${
+                          selected
+                            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            : "bg-purple-600 text-white hover:bg-purple-700 hover:scale-105"
+                        }`}
+                      >
+                        {selected ? "Selecionado" : "Usar avatar"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </section>
         </main>
       </div>
