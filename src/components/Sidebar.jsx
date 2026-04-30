@@ -82,14 +82,6 @@ function Sidebar() {
         </nav>
 
         {/* About Us Button */}
-        <button
-          onClick={() => navigate("/about")}
-          className="text-left px-4 py-3 rounded-lg text-gray-700 font-medium hover:bg-purple-50 hover:text-purple-600 transition flex items-center gap-3 whitespace-nowrap"
-          title={isCollapsed ? "About" : ""}
-        >
-          <span className="text-xl flex-shrink-0">ℹ️</span>
-          {!isCollapsed && <span>About Us</span>}
-        </button>
 
         {/* Logout Button */}
         <button
@@ -118,13 +110,23 @@ function Sidebar() {
         <button
           onClick={() => navigate("/home")}
           className="flex flex-col items-center justify-center flex-1 h-full text-gray-700 hover:text-purple-600 hover:bg-purple-50 transition py-2"
-          title="Courses"
+          title="Home"
         >
-          <span className="text-2xl">📚</span>
-          <span className="text-xs mt-1">Courses</span>
+          <span className="text-2xl">🏠</span>
+          <span className="text-xs mt-1">Home</span>
         </button>
 
         <button
+          onClick={() => navigate("/leaderboard")}
+          className="flex flex-col items-center justify-center flex-1 h-full text-gray-700 hover:text-purple-600 hover:bg-purple-50 transition py-2"
+          title="Leaderboard"
+        >
+          <span className="text-2xl">🏆</span>
+          <span className="text-xs mt-1">Leaderboard</span>
+        </button>
+
+        <button
+          onClick={() => navigate("/shop")}
           className="flex flex-col items-center justify-center flex-1 h-full text-gray-700 hover:text-purple-600 hover:bg-purple-50 transition py-2"
           title="Shop"
         >
@@ -133,29 +135,12 @@ function Sidebar() {
         </button>
 
         <button
+          onClick={() => navigate("/avatar/profile")}
           className="flex flex-col items-center justify-center flex-1 h-full text-gray-700 hover:text-purple-600 hover:bg-purple-50 transition py-2"
           title="Profile"
         >
           <span className="text-2xl">👤</span>
           <span className="text-xs mt-1">Profile</span>
-        </button>
-
-        <button
-          onClick={() => navigate("/about")}
-          className="flex flex-col items-center justify-center flex-1 h-full text-gray-700 hover:text-purple-600 hover:bg-purple-50 transition py-2"
-          title="About"
-        >
-          <span className="text-2xl">ℹ️</span>
-          <span className="text-xs mt-1">About</span>
-        </button>
-
-        <button
-          onClick={handleLogout}
-          className="flex flex-col items-center justify-center flex-1 h-full text-red-600 hover:text-red-700 hover:bg-red-50 transition py-2"
-          title="Logout"
-        >
-          <span className="text-2xl">🚪</span>
-          <span className="text-xs mt-1">Exit</span>
         </button>
       </nav>
     </>

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase, isSupabaseConfigured } from "../lib/supabase";
 
 const GameContext = createContext();
 
@@ -19,7 +19,7 @@ export function GameProvider({ children }) {
   const [levelPulse, setLevelPulse] = useState(false);
   const [coinAnim, setCoinAnim] = useState(false);
 
-  async function loadProfile(user) {
+  const loadProfile = useCallback(async (user) => {
     if (!user) return;
 
     setUserId(user.id);
@@ -44,7 +44,7 @@ export function GameProvider({ children }) {
       setLevel(data.level || 1);
       setXpMax(data.xp_max || 100);
     }
-  }
+  }, []);
 
   useEffect(() => {
     async function checkSession() {
@@ -76,7 +76,7 @@ export function GameProvider({ children }) {
     return () => {
       listener.subscription.unsubscribe();
     };
-  }, []);
+  }, [loadProfile]);
 
   const saveProfile = useCallback(async (newData) => {
     if (!userId) return;
@@ -92,41 +92,81 @@ export function GameProvider({ children }) {
   }, [userId]);
 
   const signup = useCallback(async (name, email, password) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
+    if (!isSupabaseConfigured) {
+      console.error("Signup blocked: Supabase config is missing or invalid.");
+      return {
+        success: false,
+        error:
+          "Supabase não está configurado corretamente. Verifique .env e reinicie o servidor.",
+      };
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+          },
         },
-      },
-    });
+      });
 
-    if (error) {
-      return { success: false, error: error.message };
+      if (error) {
+        return { success: false, error: error.message || "Falha ao criar conta" };
+      }
+
+      if (data?.user) {
+        await loadProfile(data.user);
+      }
+
+      return { success: true };
+    } catch (err) {
+      console.error("Signup error:", err);
+      return {
+        success: false,
+        error:
+          err?.message ||
+          "Não foi possível criar conta. Verifique a conexão ou configuração do Supabase.",
+      };
     }
-
-    if (data.user) {
-      await loadProfile(data.user);
-    }
-
-    return { success: true };
-  }, []);
+  }, [loadProfile]);
 
   const login = useCallback(async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      return { success: false, error: "Email ou senha incorretos" };
+    if (!isSupabaseConfigured) {
+      console.error("Login blocked: Supabase config is missing or invalid.");
+      return {
+        success: false,
+        error:
+          "Supabase não está configurado corretamente. Verifique .env e reinicie o servidor.",
+      };
     }
 
-    await loadProfile(data.user);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    return { success: true };
-  }, []);
+      if (error) {
+        return { success: false, error: "Email ou senha incorretos" };
+      }
+
+      if (data?.user) {
+        await loadProfile(data.user);
+      }
+
+      return { success: true };
+    } catch (err) {
+      console.error("Login error:", err);
+      return {
+        success: false,
+        error:
+          err?.message ||
+          "Não foi possível entrar. Verifique a conexão ou configuração do Supabase.",
+      };
+    }
+  }, [loadProfile]);
 
   const resetProgress = useCallback(async () => {
     await supabase.auth.signOut();
