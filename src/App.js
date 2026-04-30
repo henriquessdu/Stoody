@@ -6,6 +6,9 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import About from "./pages/About";
 import CoursePlayer from "./pages/CoursePlayer";
+import Shop from "./pages/Shop";
+import Profile from "./pages/Profile";
+import Leaderboard from "./pages/Leaderboard";
 
 function App() {
   return (
@@ -18,6 +21,9 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/home" element={<Home />} />
             <Route path="/course/:courseId" element={<CoursePlayer />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/avatar/profile" element={<Profile />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
           </Routes>
         </BrowserRouter>
       </SidebarProvider>

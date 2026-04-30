@@ -54,6 +54,7 @@ function Sidebar() {
           </button>
 
           <button
+            onClick={() => navigate("/shop")}
             className="text-left px-4 py-3 rounded-lg text-gray-700 font-medium hover:bg-purple-50 hover:text-purple-600 transition flex items-center gap-3 whitespace-nowrap"
             title={isCollapsed ? "Shop" : ""}
           >
@@ -62,6 +63,7 @@ function Sidebar() {
           </button>
 
           <button
+            onClick={() => navigate("/avatar/profile")}
             className="text-left px-4 py-3 rounded-lg text-gray-700 font-medium hover:bg-purple-50 hover:text-purple-600 transition flex items-center gap-3 whitespace-nowrap"
             title={isCollapsed ? "Profile" : ""}
           >
@@ -70,6 +72,7 @@ function Sidebar() {
           </button>
 
           <button
+            onClick={() => navigate("/leaderboard")}
             className="text-left px-4 py-3 rounded-lg text-gray-700 font-medium hover:bg-purple-50 hover:text-purple-600 transition flex items-center gap-3 whitespace-nowrap"
             title={isCollapsed ? "Leaderboard" : ""}
           >
