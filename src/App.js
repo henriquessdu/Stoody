@@ -11,7 +11,11 @@ import Profile from "./pages/Profile";
 import Leaderboard from "./pages/Leaderboard";
 
 function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useGame();
+  const { isAuthenticated, isAuthLoading } = useGame();
+
+  if (isAuthLoading) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;

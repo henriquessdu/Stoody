@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameContext";
 import logo from "../assets/logo-stoody.png";
@@ -6,13 +6,19 @@ import fundo from "../assets/idiomas.png";
 
 function Login() {
   const navigate = useNavigate();
-  const { login } = useGame();
+  const { login, isAuthenticated, isAuthLoading } = useGame();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthLoading && isAuthenticated) {
+      navigate("/home", { replace: true });
+    }
+  }, [isAuthLoading, isAuthenticated, navigate]);
 
   async function handleLogin(e) {
     e.preventDefault();

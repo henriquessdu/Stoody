@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 const GameContext = createContext();
 
 export function GameProvider({ children }) {
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState("");
   const [userName, setUserName] = useState("");
@@ -48,16 +49,22 @@ export function GameProvider({ children }) {
 
   useEffect(() => {
     async function checkSession() {
-      const { data } = await supabase.auth.getSession();
+      const { data, error } = await supabase.auth.getSession();
 
-      if (data.session?.user) {
+      if (error) {
+        console.error("Erro ao verificar sessão:", error.message);
+      } else if (data.session?.user) {
         await loadProfile(data.session.user);
       }
+
+      setIsAuthLoading(false);
     }
 
     checkSession();
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthLoading(false);
+
       if (session?.user) {
         loadProfile(session.user);
       } else {
@@ -195,6 +202,7 @@ export function GameProvider({ children }) {
   }, [completedCourses]);
 
   const value = {
+    isAuthLoading,
     isAuthenticated,
     userId,
     userName,
