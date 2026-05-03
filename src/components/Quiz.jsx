@@ -144,15 +144,32 @@ export default function Quiz({
     }
 
     if (onFinish) {
+      const answers = questions.map((question, index) => {
+        const selectedAnswerIndex = userAnswers[index];
+        const correctAnswerIndex = getCorrectAnswerIndex(question);
+
+        return {
+          question: question.question,
+          options: question.options,
+          selectedAnswerIndex,
+          selectedAnswer: question.options[selectedAnswerIndex] || null,
+          correctAnswerIndex,
+          correctAnswer: question.options[correctAnswerIndex] || null,
+          isCorrect: selectedAnswerIndex === correctAnswerIndex,
+        };
+      });
+
       onFinish({
         totalXp,
         totalCoins,
         correctAnswers: correctAnswerCount,
         totalQuestions: questions.length,
         accuracy: Math.round((correctAnswerCount / questions.length) * 100),
+        userAnswers,
+        answers,
       });
     }
-  }, [totalXp, totalCoins, correctAnswerCount, questions.length, alreadyCompleted, addXP, addCoins, onFinish]);
+  }, [totalXp, totalCoins, correctAnswerCount, questions, userAnswers, alreadyCompleted, addXP, addCoins, onFinish, getCorrectAnswerIndex]);
 
   // ==================== RENDER ====================
 

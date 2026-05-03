@@ -7,11 +7,45 @@ import Navbar from '../components/Navbar';
 import VideoSection from '../components/VideoSection';
 import Quiz from '../components/Quiz';
 import CompletionCard from '../components/CompletionCard';
+import { supabase } from '../lib/supabase';
+
+function getCorrectAnswerIndex(question) {
+  if (!question) return -1;
+
+  const correctValue =
+    question.correct !== undefined ? question.correct : question.correctAnswer;
+
+  if (typeof correctValue === 'number') {
+    return correctValue;
+  }
+
+  if (typeof correctValue === 'string') {
+    return question.options.indexOf(correctValue);
+  }
+
+  return -1;
+}
+
+function buildFallbackReviewAnswers(questions) {
+  return questions.map((question) => {
+    const correctAnswerIndex = getCorrectAnswerIndex(question);
+
+    return {
+      question: question.question,
+      options: question.options,
+      selectedAnswerIndex: null,
+      selectedAnswer: null,
+      correctAnswerIndex,
+      correctAnswer: question.options[correctAnswerIndex] || null,
+      isCorrect: false,
+    };
+  });
+}
 
 export default function CoursePlayer() {
   const { courseId } = useParams();
   const navigate = useNavigate();
-  const { addXP, addCoins, isCourseCompleted, completeCourse } = useGame();
+  const { userId, addXP, addCoins, isCourseCompleted, completeCourse } = useGame();
   const { isCollapsed } = useSidebar();
 
   const marginClass = isCollapsed ? "md:ml-20" : "md:ml-64";
@@ -136,10 +170,40 @@ export default function CoursePlayer() {
   const [coinsEarned, setCoinsEarned] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(() => isCourseCompleted(courseId));
   const [loading, setLoading] = useState(true);
+  const [latestAttempt, setLatestAttempt] = useState(null);
+  const [reviewMode, setReviewMode] = useState(false);
 
   useEffect(() => {
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    async function loadLatestAttempt() {
+      if (!userId || !courseId) return;
+
+      const { data, error } = await supabase
+        .from('quiz_attempts')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('course_id', courseId)
+        .order('completed_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Erro ao carregar tentativa do quiz:', error.message);
+        return;
+      }
+
+      if (data) {
+        setLatestAttempt(data);
+        setQuizCompleted(true);
+        completeCourse(courseId);
+      }
+    }
+
+    loadLatestAttempt();
+  }, [userId, courseId, completeCourse]);
 
   if (!course) {
     return (
@@ -178,7 +242,14 @@ export default function CoursePlayer() {
   };
 
   // Handler para finalizar o quiz
-  const handleFinishQuiz = ({ totalXp, totalCoins }) => {
+  const handleFinishQuiz = async ({
+    totalXp,
+    totalCoins,
+    correctAnswers,
+    totalQuestions,
+    accuracy,
+    answers,
+  }) => {
     setXpEarned(totalXp);
     setCoinsEarned(totalCoins);
     setFinished(true);
@@ -189,6 +260,31 @@ export default function CoursePlayer() {
 
     // Marcar como completado
     completeCourse(courseId);
+
+    const attempt = {
+      course_id: courseId,
+      course_title: course.title,
+      answers: answers || buildFallbackReviewAnswers(course.questions),
+      correct_answers: correctAnswers,
+      total_questions: totalQuestions,
+      accuracy,
+      xp_earned: totalXp,
+      coins_earned: totalCoins,
+      completed_at: new Date().toISOString(),
+    };
+
+    setLatestAttempt(attempt);
+
+    if (userId) {
+      const { error } = await supabase.from('quiz_attempts').insert({
+        user_id: userId,
+        ...attempt,
+      });
+
+      if (error) {
+        console.error('Erro ao salvar tentativa do quiz:', error.message);
+      }
+    }
   };
 
   // Handler para completar a lição
@@ -196,6 +292,22 @@ export default function CoursePlayer() {
     setQuizCompleted(true);
     navigate('/home');
   };
+
+  if (reviewMode && latestAttempt) {
+    return (
+      <div className="flex flex-col md:flex-row bg-gray-50 min-h-screen">
+        <Sidebar />
+        <div className={`flex-1 ${marginClass} transition-all duration-300 flex flex-col pb-20 md:pb-0`}>
+          <Navbar />
+          <QuizReview
+            courseTitle={course.title}
+            attempt={latestAttempt}
+            onBack={() => setReviewMode(false)}
+          />
+        </div>
+      </div>
+    );
+  }
 
   // Estado 1: Quiz já foi completado - mostrar vídeo + mensagem
   if (quizCompleted && !started) {
@@ -234,6 +346,18 @@ export default function CoursePlayer() {
               {/* Botão */}
               <div className="flex gap-3 mt-6">
                 <button
+                  onClick={() => setReviewMode(true)}
+                  disabled={!latestAttempt}
+                  className={`flex-1 py-3 font-bold rounded-2xl transition-all active:scale-95 ${
+                    latestAttempt
+                      ? 'bg-white text-purple-600 border-2 border-purple-600 hover:bg-purple-50'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  Revisar respostas
+                </button>
+
+                <button
                   onClick={() => navigate('/home')}
                   className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-2xl hover:shadow-lg transition-all active:scale-95"
                 >
@@ -256,6 +380,7 @@ export default function CoursePlayer() {
           <Navbar />
           <div className="w-full bg-white">
             <Quiz
+              courseId={courseId}
               questions={course.questions}
               onFinish={handleFinishQuiz}
               xpPerQuestion={xpPerQuestion}
@@ -279,6 +404,7 @@ export default function CoursePlayer() {
               xpEarned={xpEarned}
               coinsEarned={coinsEarned}
               onComplete={handleCompleteLesson}
+              onReview={() => setReviewMode(true)}
             />
           </div>
         </div>
@@ -330,5 +456,113 @@ export default function CoursePlayer() {
         </div>
       </div>
     </div>
+  );
+}
+
+function QuizReview({ courseTitle, attempt, onBack }) {
+  const answers = attempt.answers || [];
+  const totalQuestions = attempt.total_questions || answers.length;
+  const correctAnswers =
+    attempt.correct_answers ??
+    answers.filter((answer) => answer.isCorrect).length;
+  const accuracy =
+    attempt.accuracy ??
+    (totalQuestions ? Math.round((correctAnswers / totalQuestions) * 100) : 0);
+
+  return (
+    <main className="w-full bg-gray-50 px-4 py-8">
+      <div className="max-w-4xl mx-auto">
+        <button
+          onClick={onBack}
+          className="mb-6 px-5 py-3 rounded-xl bg-white text-gray-700 font-bold border border-gray-200 hover:bg-gray-100 transition"
+        >
+          Voltar
+        </button>
+
+        <section className="bg-gradient-to-r from-purple-600 to-pink-500 rounded-3xl p-8 text-white shadow-xl mb-8">
+          <p className="text-purple-100 font-semibold mb-2">Revisão do quiz</p>
+          <h1 className="text-3xl md:text-4xl font-bold">{courseTitle}</h1>
+
+          <div className="grid sm:grid-cols-3 gap-3 mt-6">
+            <div className="bg-white/20 rounded-2xl p-4">
+              <p className="text-sm text-purple-100">Acertos</p>
+              <p className="text-3xl font-bold">
+                {correctAnswers}/{totalQuestions}
+              </p>
+            </div>
+            <div className="bg-white/20 rounded-2xl p-4">
+              <p className="text-sm text-purple-100">Taxa</p>
+              <p className="text-3xl font-bold">{accuracy}%</p>
+            </div>
+            <div className="bg-white/20 rounded-2xl p-4">
+              <p className="text-sm text-purple-100">Recompensas</p>
+              <p className="text-2xl font-bold">
+                +{attempt.xp_earned || 0} XP
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <div className="space-y-5">
+          {answers.map((answer, answerIndex) => (
+            <article
+              key={`${answer.question}-${answerIndex}`}
+              className={`bg-white rounded-2xl shadow-md border-2 p-5 ${
+                answer.isCorrect ? 'border-green-200' : 'border-red-200'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div>
+                  <p className="text-sm font-bold text-purple-600 mb-2">
+                    Pergunta {answerIndex + 1}
+                  </p>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {answer.question}
+                  </h2>
+                </div>
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-bold ${
+                    answer.isCorrect
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  {answer.isCorrect ? 'Correta' : 'Incorreta'}
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {(answer.options || []).map((option, optionIndex) => {
+                  const isSelected = answer.selectedAnswerIndex === optionIndex;
+                  const isCorrect = answer.correctAnswerIndex === optionIndex;
+
+                  let optionClass = 'border-gray-200 bg-gray-50 text-gray-700';
+
+                  if (isCorrect) {
+                    optionClass = 'border-green-500 bg-green-50 text-green-800';
+                  } else if (isSelected) {
+                    optionClass = 'border-red-500 bg-red-50 text-red-800';
+                  }
+
+                  return (
+                    <div
+                      key={`${option}-${optionIndex}`}
+                      className={`border-2 rounded-xl p-4 font-medium ${optionClass}`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span>{option}</span>
+                        <span className="text-sm font-bold">
+                          {isCorrect ? 'Gabarito' : isSelected ? 'Sua resposta' : ''}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </main>
   );
 }

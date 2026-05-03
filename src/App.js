@@ -9,6 +9,7 @@ import CoursePlayer from "./pages/CoursePlayer";
 import Shop from "./pages/Shop";
 import Profile from "./pages/Profile";
 import Leaderboard from "./pages/Leaderboard";
+import Contact from "./pages/Contact";
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isAuthLoading } = useGame();
@@ -75,6 +76,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Leaderboard />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/contact"
+              element={
+                <ProtectedRoute>
+                  <Contact />
                 </ProtectedRoute>
               }
             />

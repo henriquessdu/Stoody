@@ -4,6 +4,7 @@ export default function CompletionCard({
   xpEarned,
   coinsEarned,
   onComplete,
+  onReview,
 }) {
   return (
     <div className="w-full min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50">
@@ -105,6 +106,13 @@ export default function CompletionCard({
 
         {/* Botão Finalizar */}
         <button
+          onClick={onReview}
+          className="w-full py-3 border-2 border-purple-600 text-purple-600 font-bold rounded-2xl hover:bg-purple-50 transition-all mb-4"
+        >
+          Revisar respostas
+        </button>
+
+        <button 
           onClick={onComplete}
           className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-95 mb-4"
         >

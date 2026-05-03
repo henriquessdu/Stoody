@@ -79,6 +79,15 @@ function Sidebar() {
             <span className="text-xl flex-shrink-0">🏆</span>
             {!isCollapsed && <span>Leaderboard</span>}
           </button>
+
+          <button
+            onClick={() => navigate("/contact")}
+            className="text-left px-4 py-3 rounded-lg text-gray-700 font-medium hover:bg-purple-50 hover:text-purple-600 transition flex items-center gap-3 whitespace-nowrap"
+            title={isCollapsed ? "Contato" : ""}
+          >
+            <span className="text-xl flex-shrink-0">✉️</span>
+            {!isCollapsed && <span>Contato</span>}
+          </button>
         </nav>
 
         {/* About Us Button */}
@@ -141,6 +150,15 @@ function Sidebar() {
         >
           <span className="text-2xl">👤</span>
           <span className="text-xs mt-1">Profile</span>
+        </button>
+
+        <button
+          onClick={() => navigate("/contact")}
+          className="flex flex-col items-center justify-center flex-1 h-full text-gray-700 hover:text-purple-600 hover:bg-purple-50 transition py-2"
+          title="Contato"
+        >
+          <span className="text-2xl">✉️</span>
+          <span className="text-xs mt-1">Contato</span>
         </button>
 
         <button

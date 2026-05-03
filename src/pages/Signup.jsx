@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameContext";
+import { sendWelcomeEmail } from "../lib/emailjs";
 import logo from "../assets/logo-stoody.png";
 
 function isValidEmail(email) {
@@ -58,6 +59,13 @@ function Signup() {
     const result = await signup(name.trim(), normalizedEmail, password);
 
     if (result.success) {
+      sendWelcomeEmail({
+        name: name.trim(),
+        email: normalizedEmail,
+      }).catch((err) => {
+        console.error("Erro ao enviar email de boas-vindas:", err);
+      });
+
       navigate("/home");
     } else {
       setError(result.error);

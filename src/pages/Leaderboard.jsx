@@ -23,7 +23,7 @@ function Leaderboard() {
       .from("profiles")
       .select("id, name, xp, coins, avatar_url")
       .order(filter, { ascending: false })
-      .limit(25);
+      .limit(20);
 
     if (error) {
       console.error("Erro ao buscar ranking:", error.message);
