@@ -142,6 +142,15 @@ function Sidebar() {
           <span className="text-2xl">👤</span>
           <span className="text-xs mt-1">Profile</span>
         </button>
+
+        <button
+          onClick={handleLogout}
+          className="flex flex-col items-center justify-center flex-1 h-full text-red-600 hover:text-red-700 hover:bg-red-50 transition py-2"
+          title="Logout"
+        >
+          <span className="text-2xl">🚪</span>
+          <span className="text-xs mt-1">Sair</span>
+        </button>
       </nav>
     </>
   );

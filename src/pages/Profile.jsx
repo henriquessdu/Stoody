@@ -18,10 +18,13 @@ function Profile() {
   const [message, setMessage] = useState("");
 
   const marginClass = isCollapsed ? "md:ml-20" : "md:ml-64";
+  const initialAvatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(
+    userName || "Stoody"
+  )}`;
 
   const cursosIniciados = 3;
   const cursosConcluidos = completedCourses.length;
-  const avataresComprados = ownedAvatars.length;
+  const avataresComprados = ownedAvatars.filter((avatar) => !avatar.isInitial).length;
   const diasConsecutivos = 7;
   const progressoXp = xpMax ? (xp / xpMax) * 100 : 0;
 
@@ -37,22 +40,34 @@ function Profile() {
         .eq("id", userId)
         .single();
 
-      if (profileData?.avatar_url) {
-        setCurrentAvatar(profileData.avatar_url);
-      }
+      setCurrentAvatar(profileData?.avatar_url || initialAvatarUrl);
 
       const { data: avatarsData, error: avatarsError } = await supabase
         .from("user_avatars")
         .select("avatars(id, name, image_url, price)")
         .eq("user_id", userId);
 
-      if (!avatarsError && avatarsData) {
-        const formattedAvatars = avatarsData
-          .map((item) => item.avatars)
-          .filter(Boolean);
-
-        setOwnedAvatars(formattedAvatars);
+      if (avatarsError) {
+        console.error("Erro ao carregar avatares comprados:", avatarsError.message);
       }
+
+      const formattedAvatars = (avatarsData || [])
+        .map((item) => item.avatars)
+        .filter(Boolean);
+
+      const avatarsWithInitial = [
+        {
+          id: "initial-avatar",
+          name: "Avatar inicial",
+          image_url: initialAvatarUrl,
+          isInitial: true,
+        },
+        ...formattedAvatars.filter(
+          (avatar) => avatar.image_url !== initialAvatarUrl
+        ),
+      ];
+
+      setOwnedAvatars(avatarsWithInitial);
 
       const { data: rankingData } = await supabase
         .from("profiles")
@@ -68,7 +83,7 @@ function Profile() {
     }
 
     loadProfileData();
-  }, [userId]);
+  }, [userId, initialAvatarUrl]);
 
   async function selectAvatar(avatarUrl) {
     setMessage("");
@@ -87,9 +102,7 @@ function Profile() {
     setMessage("Avatar atualizado com sucesso!");
   }
 
-  const avatarPrincipal =
-    currentAvatar ||
-    `https://api.dicebear.com/7.x/adventurer/svg?seed=${userName || "Stoody"}`;
+  const avatarPrincipal = currentAvatar || initialAvatarUrl;
 
   return (
     <>
